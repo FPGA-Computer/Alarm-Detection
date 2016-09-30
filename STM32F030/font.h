@@ -27,19 +27,20 @@
 #include <stdint.h>
 
 extern const uint8_t Font_5x8[];
-extern const uint8_t Font_8x16[];
+extern const uint8_t Font_3x5[];
 
-#define Font_5x8_CH_LOW					26U
+#define Font_5x8_CH_LOW					32U
 #define Font_5x8_CH_HIGH				127U
 
-#define SYMBOL_AM								26
-#define SYMBOL_PM								27
-#define SYMBOL_SPEAKER					28
-#define SYMBOL_SOUND_MAYBE			29
-#define SYMBOL_SOUND_ON					30
-#define SYMBOL_SOUND_LOUD				31
+#define Font_3x5_CH_LOW					'.'
+#define Font_3x5_CH_HIGH				'9'
+#define Font_3x5_WIDTH					3
+#define Font_3x5_HEIGHT					5
 
-#define Font_8x16_CH_LOW				32U
-#define Font_8x16_CH_HIGH				127U
+enum Font_3x5_Sym
+{ Font_3x5_V = '.'+1 };
 
+#define FP_2D           100U
+#define FP_MULT         1000U
+#define FP_DIGIT        (FP_MULT/10)
 #endif

@@ -24,25 +24,20 @@
 #ifndef NOKIA5110_H_
 #define NOKIA5110_H_
 
-#include "hardware.h"
-
-#define SPI_OVERCLOCK
-
-#ifdef SPI_OVERCLOCK
-#define SPI_BR						SPI_CR1_BR_1
-#else
-#define SPI_BR						(SPI_CR1_BR_1|SPI_CR1_BR_0)
-#endif
+// SCK = Clk/2 = 4MHz
+#define SPI_BR								0
 
 #define LCD_DMA_IRQ_PRIORITY	3
 
-#define LCD_MAX_X					84
-#define LCD_MAX_Y					6
-#define LCD_TEXT_WIDTH		5
-#define LCD_SYM_WIDTH			(LCD_TEXT_WIDTH+1)
-#define LCD_MAXCOL				(LCD_MAX_X/LCD_TEXT_WIDTH)
-#define LCD_MAXROW				LCD_MAX_Y
-#define LCD_PIX_PER_ROW		8
+#define LCD_MAX_X							84
+#define LCD_MAX_Y							6
+#define LCD_TEXT_WIDTH				5
+#define LCD_SYM_WIDTH					(LCD_TEXT_WIDTH+1)
+#define LCD_MAXCOL						(LCD_MAX_X/LCD_TEXT_WIDTH)
+#define LCD_MAXROW						LCD_MAX_Y
+#define LCD_PIX_PER_ROW				8
+
+#include "hardware.h"
 
 #define LCD_Home()				LCD_Moveto(0,0)
 
@@ -65,7 +60,7 @@ void SPI_ByteWrite(uint8_t byte);
 void SPI_Block_Write(const uint8_t *ptr, uint16_t size);
 void SPI_Block_Fill(uint8_t Fill, uint16_t size);
 void LCD_Init(void);
-void LCD_CORD_XY(uint8_t X, uint8_t Y);
+void LCD_Cord_XY(uint8_t X, uint8_t Y);
 void LCD_Moveto(uint8_t TextCur_X, uint8_t TextCur_Y);
 void Cursor_NewLine(void);
 void LCD_Cls(void);

@@ -31,14 +31,13 @@ int main(void)
 { 
 	Hardware_Init();
 	Audio_Init();
-
 	ADC_Start();
 	
 	__WFI( 	);	
 	while(1)
 	{	
 		if(Audio_Data.Conv_Done)
-		{ 		
+		{
 			Audio_Data.Conv_Done = 0;
 			
 			Audio_Processing();
@@ -55,13 +54,6 @@ void UpdateDisplay(void)
 	else
 	{
 		Ticks = TICK_RELOAD;
-		
-		if(!(Audio_Data.Loudness & (0x03<<Audio_Data.Selected*2)))
-			Blank_Spectrum();
-		else 				
-		{
-			Spectrum();
-			Plot_Spectrum();
-		}
+		Plot_All();
 	}
 }

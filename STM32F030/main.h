@@ -36,50 +36,70 @@ void UpdateDisplay(void);
 void ChangeDisplayMode(uint8_t Mode);
 void Update_AudioSource(void);
 void Draw_AudioSource_Label(void);
+extern uint8_t Ticks;
 
 // DC offset averages
 #define OFFSET_PERIOD					64
+// Battery voltage averages ideally 2^n
+#define ADC_BATT_AVERAGES			8
 
 // Volume average time in ms
-#define VOLUME_AVERAGE_PERIOD	300
+#define VOLUME_AVERAGE_PERIOD	300UL
 // Peak volume decay time in ms
-#define PEAK_VOLUME_DECAY			1500
+#define PEAK_VOLUME_DECAY			1500UL
 
-#define ADC_AUDIO_SAMPLES			512
+#define ADC_AUDIO_SAMPLES			512UL
 #define ADC_BLOCK_SIZE				(ADC_AUDIO_SAMPLES/2)
+
+// FFT size = 256
 #define	N_FFT									ADC_BLOCK_SIZE
 
+// 8MHz/781 = 10243
 #define ADC_SAMPLE_RATE				10240UL
 #define ADC_SAMPLE_PERIOD			(CPU_CLOCK/ADC_SAMPLE_RATE)
 
+// 40Hz
 #define ADC_DMA_RATE					(ADC_SAMPLE_RATE/ADC_BLOCK_SIZE)
-#define SCREEN_REFRESH_RATE		15UL
+#define PEAK_DECAY_RATE				((PEAK_VOLUME_DECAY*ADC_DMA_RATE)/1000UL)
+#define SCREEN_REFRESH_RATE		10UL
 #define TICK_RELOAD						(ADC_DMA_RATE/SCREEN_REFRESH_RATE)
+		
+#define AUDIO_THRESHOLD 			0x260
 
-#define AUDIO_TIMEOUT					200
-#define LOUDNESS_TIMEOUT			200
-#define AUDIO_COUNTDOWN_TH		(AUDIO_TIMEOUT/2)				
+#define PLOTDATA_ROW					1
+#define PLOTDATA_ROWS					5
 
-#define AUDIO_THRESHOLD 			0x94L
-#define LOUDNESS_THRESHOLD		0x86F9
+#define SPECTRUM_ROW					4
+#define SPECTRUM_COL					0
+#define SPECTRUM_ROWS					3
+#define SPECTRUM_WIDTH				((SPECTRUM_BIN-SPECTRUM_START)/2)
 
-extern uint8_t Ticks;
+#define SPECTRUM_GRID_ROW			(SPECTRUM_ROW-SPECTRUM_ROWS+1)
+#define SPECTRUM_GRID_LONG		0x06
+#define SPECTRUM_GRID_SHORT		0x02
 
-#define SPECTRUM_ROWS			5
-#define SPECTRUM_ROW			1
-#define SPECTRUM_COL			0
+#define SPECTRUM_START				1
+#define SPECTRUM_BIN					(ADC_BLOCK_SIZE/2) 
+#define SPECTRUM_BIN_INC			(SPECTRUM_BIN/SPECTRUM_WIDTH)
+#define SPECTRUM_BIN_FREQ			(ADC_SAMPLE_RATE/N_FFT)
 
-#define SPECTRUM_START		0
-#define SPECTRUM_WIDTH		1
-#define SPECTRUM_BIN		(LCD_MAX_X-SPECTRUM_WIDTH)
-#undef	SPECTRUM_WIDEBAR 
+#define VU_ROW								4
+#define VU_COL								(LCD_MAX_X-(VU_WIDTH+1))
+#define VU_WIDTH							5
+#define VU_ROWS								4
 
-#define SPECTRUM_VU_WIDTH	5
-#define SPECTRUM_VU_COL		(LCD_MAX_X-(SPECTRUM_VU_WIDTH+1)*ADC_CH_PER_SRC)
+#define VOLUME_COL						0
+#define VOLUME_COLS						1
+#define VOLUME_ROW						1
+#define VOLUME_ROWS						2
+#define VOLUME_WIDTH					(64/VOLUME_COLS)
 
-#define MIN(X,Y)					(((X)<=(Y))?(X):(Y))
-#define SPECTRUM_END			MIN(SPECTRUM_VU_COL-2,(ADC_BLOCK_SIZE/2)*SPECTRUM_WIDTH)
+#define BATT_ROW							0
+#define BATT_COL							(SPECTRUM_WIDTH+3)
+#define BATT_BAT_WIDTH				(LCD_MAX_X - BATT_COL)
+#define BATT_BM								0x40
+#define BATT_LOW_END					2300
+#define BATT_BAR_RES					30
 
-#undef SPECTRUM_AUTOSCALE
-
+#define BACKLIGHT_TIMEOUT			40
 #endif

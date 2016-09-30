@@ -27,41 +27,33 @@
 #include "hardware.h"
 #include "intfft.h"
 
-enum Audio_Mux
-{
-	Source_PC=0, Source_TV=1
-};
-
 void Audio_Init(void);
 void Audio_Processing(void);
 void Draw_VU_Legend(void);
 void Draw_VUBar(int32_t Vin, int32_t Peak);
 void Draw_VUBars(void);
 void Spectrum(void);
-void Plot_Spectrum(void);
+void Plot_All(void);
 void Blank_Spectrum(void);
 
-enum Audio_Ch
-{ Left_Ch=0, Right_Ch=1 };
-
-enum Audio_Loudness
-{ Audio_None, Audio_Sporadic, Audio_Detect, Audio_Loud };
+enum Plot_VU
+{ Plot_Average, Plot_Peak};
 
 #pragma anon_unions
 
 typedef struct
 {
-	int16_t		AudioBuffer[ADC_MAX_CH*ADC_AUDIO_SAMPLES];
-	uint32_t	Average_Volume[ADC_MAX_AUD_CH];
-	uint32_t	Peak_Volume[ADC_MAX_AUD_CH];
-	int16_t 	Averages[ADC_MAX_CH];
-	uint8_t 	Detect_Cnt[ADC_MAX_SRC];
-	uint8_t 	Loud_Cnt[ADC_MAX_SRC];
-	uint8_t		Selected:1;
-	uint8_t		Loudness:ADC_MAX_SRC*2;
+	int16_t		AudioBuffer[ADC_AUDIO_SAMPLES];
+	uint32_t	Average_Volume;
+	uint32_t  Peak_Volume;
+	int16_t 	Offset;
+	uint16_t	Avg_Batt;
+	volatile  uint16_t Batt;
+	uint16_t	Backlight_Cnt;
 	uint8_t		Spectrum_Blank:1;
 	volatile 	uint8_t Conv_Done:1;
-	volatile	uint8_t Conv_HalfDone:1;	
+	volatile	uint8_t Conv_HalfDone:1;
+	volatile	uint8_t Conv_Batt:1;
 } Audio_t;
 
 typedef struct
@@ -69,15 +61,19 @@ typedef struct
 	union
 	{ 
 		int16comp_t fft_data[ADC_BLOCK_SIZE];	
-	  uint8_t LCD_Buffer[SPECTRUM_ROWS][LCD_MAX_X];	
+	  uint8_t LCD_Buffer[PLOTDATA_ROWS][LCD_MAX_X];	
 	};
-	uint32_t fft_mag[ADC_BLOCK_SIZE/2];
-} FFT_t;
+	uint8_t fft_mag[SPECTRUM_BIN];
+	uint8_t volume[VOLUME_WIDTH];
+	uint8_t volume_index;
+} PlotData_t;
 
 extern Audio_t Audio_Data;
+extern PlotData_t Plot_Data;
 extern const uint32_t dB_Table[];
 extern const uint32_t fft_dBScale[];
 
 #define dB_TBL_ENTERIES (sizeof(dB_Table)/sizeof(int32_t)-1)
+#define PEAK_VOL_MULT		8UL
 
 #endif

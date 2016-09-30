@@ -28,9 +28,11 @@
 
 void ADC_Init(void);
 void ADC_Start(void);
+void ADC_Start(void);
 
 // lowest priority
 #define ADC_DMA_IRQ_PRIORITY	3
+#define ADC_IRQ_PRIORITY			3
 
 // lowest priority
 #define ADC_DMA_PRIORITY			0

@@ -29,51 +29,20 @@
 
 void SystemInit(void)
 {
-	// Change FLASH prefetch = on, wait state to 1
-               // Device header
-	FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY;
-
-	//Set PLL to 48MHz with external 12MHz OSC	
-#ifdef HSE
-	// SYSCLK = HSE * 4 = 48MHz
-	RCC->CR |= RCC_CR_HSEON|HSE_BYPASS;
+	// FLASH default: prefetch = off, wait state to 0
 	
+	// SYSCLK = HSE = 8MHz, PLL = OFF
+	RCC->CR |= RCC_CR_HSEON;
+
 	while(!(RCC->CR & RCC_CR_HSERDY))
 		/* wait for HSE ready*/;
-	
-	// PLL Src = HSE, Multiplier = x2
-	RCC->CFGR = RCC_CFGR_PLLSRC_1|CFGR_PLL_MULT;
-	RCC->CR |= RCC_CR_PLLON;
-	
-	// Wait for PLL ready
-	while(!(RCC->CR & RCC_CR_PLLRDY))
-		;
-	// Switch to PLL as clock source
-	RCC->CFGR |= RCC_CFGR_SW_PLL;
+
+	// Switch to HSE as clock source
+	RCC->CFGR |= RCC_CFGR_SW_HSE;
 	
 	// wait for clock switching
-	while((RCC->CFGR & RCC_CFGR_SWS)!= RCC_CFGR_SWS_PLL)
-	 ;
-	
+	while((RCC->CFGR & RCC_CFGR_SWS)!= RCC_CFGR_SWS_HSE)
+	 ;	
 	// Turn off HSI
 	RCC->CR &= ~RCC_CR_HSION;
-	
-#else
-	// SYSCLK = HSI/2 * CLK_PLL_MULT (13 for 50.5MHz)
-	// Trim HSI down to about 3.87MHz
-	// dotclock = 25.16MHz on mine
-
-	RCC->CFGR = CFGR_PLL_MULT;
-	RCC->CR = (RCC->CR & ~RCC_CR_HSITRIM)|(HSI_TRIM<<3)|RCC_CR_PLLON;
-	
-	// Wait for PLL ready
-	while(!(RCC->CR & RCC_CR_PLLRDY))
-		;
-	// Switch to PLL as clock source
-	RCC->CFGR |= RCC_CFGR_SW_PLL;
-	
-	// wait for clock switching
-	while((RCC->CFGR & RCC_CFGR_SWS)!= RCC_CFGR_SWS_PLL)
-	 ;
-#endif
 }

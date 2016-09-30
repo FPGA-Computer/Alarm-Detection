@@ -1,10 +1,24 @@
 /*
- * Nokia5110.c
- *
- * Created: 09/07/2013 1:46:07 PM
- *  Author: K. C. Lee
- */ 
+  Nokia5110.c
+ 
+  Created: 09/07/2013 1:46:07 PM
+  Author: K. C. Lee
+ 	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.
+
+	If not, see http://www.gnu.org/licenses/gpl-3.0.en.html
+ */ 
+ 
 #include "hardware.h"
 #include "font.h"
 
@@ -92,7 +106,7 @@ void LCD_Init(void)
   SPI_ByteWrite(LCD_Disp_On);
  }
 
-void LCD_CORD_XY(uint8_t X, uint8_t Y)
+void LCD_Cord_XY(uint8_t X, uint8_t Y)
 {
   LCD_CmdMode();
   SPI_ByteWrite(LCD_Addr_X | (X & 0x7f));
@@ -102,12 +116,12 @@ void LCD_CORD_XY(uint8_t X, uint8_t Y)
 // Text
 void LCD_Moveto(uint8_t Col, uint8_t Row)
 {
-  LCD_CORD_XY(CurCol=Col*LCD_SYM_WIDTH,CurRow=Row);
+  LCD_Cord_XY(CurCol=Col*LCD_SYM_WIDTH,CurRow=Row);
  }
 
 void LCD_Cls(void)
 { 
-  LCD_CORD_XY(0,0);
+  LCD_Cord_XY(0,0);
   LCD_DataMode();
 
   SPI_Block_Fill(0x0,LCD_MAX_X*LCD_MAX_Y);
@@ -142,7 +156,7 @@ void LCD_PutCh(uint8_t Ch)
       SPI_Block_Write(ptr,Width);
     else if(TextAttr==TextAttr_Invert)      
       for(i=Width;i;i--)
-				SPI_ByteWrite(*ptr++);
+				SPI_ByteWrite(~*ptr++);
 
     if(!(Ch & 0x80))
       SPI_ByteWrite((TextAttr==TextAttr_Invert)?0xff:0);

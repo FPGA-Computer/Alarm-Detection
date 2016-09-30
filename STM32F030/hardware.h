@@ -27,12 +27,12 @@
 #include "main.h"
 #include "gpio.h"
 
-#define CPU_CLOCK					48000000UL
+#define MIN(X,Y)					(((X)<=(Y))?(X):(Y))
+
+#define CPU_CLOCK					8000000UL
 #define UART_BAUD					115200
 
-#define HSE_CLOCK					12000000UL
-#define HSE
-#define HSE_BYPASS				0
+#define HSE_CLOCK					8000000UL
 
 // Enable Debug shell 
 //#define DBG_SHELL
@@ -41,20 +41,23 @@
 //#define ADC_RES_8
 #define ADC_RES_12
 
-// 12MHz clock x4 = 48MHz
-#define CFGR_PLL_MULT					RCC_CFGR_PLLMUL4
-
+#define BACKLIGHT							PB1
 #define LCD_DC								PA6
-#define ADC_SRC_GROUP					(ADC_CHSELR_CHSEL0|ADC_CHSELR_CHSEL1)
+#define ADC_BATT_IN						PA1
+#define ADC_MIC_IN						PA0
 
-#define PEAK_DECAY_SAMPLES		((PEAK_VOLUME_DECAY*ADC_SAMPLE_RATE/ADC_BLOCK_SIZE)/1000)
+#define ADC_SRC_GROUP					(1<<ADC_MIC_IN)
+#define ADC_BATTERY						(1<<ADC_BATT_IN)
+
 #define ADC_AVERAGES					(VOLUME_AVERAGE_PERIOD*ADC_SAMPLE_RATE/ADC_BLOCK_SIZE/1000)
+#define ADC_BATT_SCALE_MULT		2505UL
+#define ADC_BATT_SCALE_DIV		2509UL
 
 // Max # of audio source
-#define ADC_MAX_SRC						2
+#define ADC_MAX_SRC						1
 // L/R channels
 #define ADC_CH_PER_SRC				1
-#define ADC_MAX_AUD_CH				(ADC_MAX_SRC*ADC_CH_PER_SRC)
+#define ADC_MAX_AUD_CH				1
 // Max # of channels per conversion
 #define ADC_MAX_CH						ADC_MAX_AUD_CH
 
@@ -63,8 +66,6 @@
 #include "adc.h"
 #include "audio.h"
 #include "fifo.h"
-#include "rtc.h"
-#include "IR Remote.h"
 
 void Hardware_Init(void);
 
@@ -73,34 +74,16 @@ enum ADC_Chs
 	Audio_R1, Audio_L1, Audio_R0, Audio_L0, Buttons
 };
 
-#ifdef DBG_SHELL
-#include "serial.h"
-#include "shell.h"
-
-#define GPIOA_MODER (PIN_ALT(PA14)|PIN_ALT(PA13)|				/* SWCLK, SWDIO */	\
-										 PIN_ALT(PA10)|PIN_ALT(PA9)|				/* RxD, TxD			*/	\
-										 PIN_ALT(PA7)|PIN_OUTPUT(PA6)|			/* MOSI, D/C 		*/	\
-										 PIN_ALT(PA5)|PIN_ANALOG(PA4)|			/* SCK ???			*/	\
-										 PIN_ANALOG(PA3)|PIN_ANALOG(PA2)|		/* L0, R0				*/	\
-		                 PIN_ANALOG(PA1)|PIN_ANALOG(PA0))		/* L1, R1				*/
-
-#define CTRL1				0
-#define CTRL0				0
-
-#define GPIOA_AFR1	 (PIN_AFRH(PA10,1)|PIN_AFRH(PA9,1))	/* RxD, TxD 		*/
-
-#else
 #define GPIOA_MODER (PIN_ALT(PA14)|PIN_ALT(PA13)|				/* SWCLK, SWDIO */	\
 										 PIN_OUTPUT(PA10)|PIN_OUTPUT(PA9)|	/* CTRL1, CTRL0	*/	\
 										 PIN_ALT(PA7)|PIN_OUTPUT(PA6)|			/* MOSI, D/C 		*/	\
-										 PIN_ALT(PA5)|PIN_ANALOG(PA4)|			/* SCK ???			*/	\
-										 PIN_ANALOG(PA3)|PIN_ANALOG(PA2)|		/* L0, R0				*/	\
-		                 PIN_ANALOG(PA1)|PIN_ANALOG(PA0))		/* L1, R1				*/
+										 PIN_ALT(PA5)|PIN_OUTPUT(PA4)|			/* SCK, ???			*/	\
+										 PIN_OUTPUT(PA3)|PIN_OUTPUT(PA2)|		/* ???, ???			*/	\
+		                 PIN_ANALOG(PA1)|PIN_ANALOG(PA0))		/* ???, Analog in	*/
 										 
-#define CTRL1				PA10
-#define CTRL0				PA9
+#define CTRL1				PA3
+#define CTRL0				PA2
 
-#define GPIOA_AFR1	 0
-#endif
+#define GPIOA_AFR1	0
 
 #endif

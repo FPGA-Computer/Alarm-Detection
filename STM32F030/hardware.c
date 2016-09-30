@@ -34,13 +34,10 @@ void Hardware_Init(void)
 	GPIOA->MODER = GPIOA_MODER;
 	GPIOA->AFR[1] = GPIOA_AFR1;
 
-	GPIOB->MODER = PIN_ALT(PB1);
-
+	// PB1 = Output
+	GPIOB->BSRR = PIN_SET(BACKLIGHT);
+	GPIOB->MODER = PIN_OUTPUT(PB1);
+	
 	LCD_Init();
 	ADC_Init();
-	
-#ifdef DBG_SHELL
-	USART_Init();
-	Shell_Init();
-#endif
 }
