@@ -24,10 +24,6 @@
 #ifndef NOKIA5110_H_
 #define NOKIA5110_H_
 
-// SCK = Clk/2 = 4MHz
-#define SPI_BR								0
-
-#define LCD_DMA_IRQ_PRIORITY	3
 
 #define LCD_MAX_X							84
 #define LCD_MAX_Y							6
@@ -56,9 +52,6 @@ extern uint8_t CurCol, CurRow;
 extern const uint8_t LCD_InitCmd[];
 extern const uint8_t LCD_Char8x5[];
 
-void SPI_ByteWrite(uint8_t byte);
-void SPI_Block_Write(const uint8_t *ptr, uint16_t size);
-void SPI_Block_Fill(uint8_t Fill, uint16_t size);
 void LCD_Init(void);
 void LCD_Cord_XY(uint8_t X, uint8_t Y);
 void LCD_Moveto(uint8_t TextCur_X, uint8_t TextCur_Y);
@@ -79,6 +72,4 @@ void LCD_HalfWidthCh(uint8_t Ch);
 
 #define Ch_NewLine					'\n'
 
-// low priority
-#define SPI_DMA_PRIORITY    0
 #endif /* NOKIA5110_H_ */

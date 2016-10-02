@@ -27,12 +27,17 @@
 #include "main.h"
 #include "gpio.h"
 
-#define MIN(X,Y)					(((X)<=(Y))?(X):(Y))
+#define MIN(X,Y)							(((X)<=(Y))?(X):(Y))
 
-#define CPU_CLOCK					8000000UL
-#define UART_BAUD					115200
+#define CPU_CLOCK							8000000UL
+#define UART_BAUD							115200
 
-#define HSE_CLOCK					8000000UL
+#define HSE_CLOCK							8000000UL
+
+// SCK = Clk/2 = 4MHz
+#define SPI_BR								0
+
+#define LCD_DMA_IRQ_PRIORITY	3
 
 // Enable Debug shell 
 //#define DBG_SHELL
@@ -86,4 +91,14 @@ enum ADC_Chs
 
 #define GPIOA_AFR1	0
 
+// low priority
+#define SPI_DMA_PRIORITY    0
+
+void SPI_Block_Write(const uint8_t *ptr, uint16_t size);
+void SPI_Block_Fill(uint8_t Fill, uint16_t size);
+
+void SPI_ByteWrite(uint8_t byte);
+
+void DMA_memmove(void *Dst, void *Src, uint16_t Size);
+void DMA_memset(void *Dst, uint8_t fill, uint16_t Size);
 #endif

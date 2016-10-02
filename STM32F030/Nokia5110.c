@@ -23,16 +23,6 @@
 #include "font.h"
 
 uint8_t TextAttr=0, CurCol, CurRow;
-volatile uint8_t SPI_Wait;
-
-void DMA1_Channel2_3_IRQHandler(void)
-{
-	if(DMA1->ISR & DMA_ISR_TCIF3)
-	{	
-		DMA1->IFCR = DMA_IFCR_CTCIF3;
-		SPI_Wait = 0;
-	}
-}
 
 const uint8_t LCD_InitCmd[]=
 { 
@@ -40,65 +30,8 @@ const uint8_t LCD_InitCmd[]=
   LCD_SetBias, LCD_CMD_FH0, LCD_Disp_Off
  };
 
-void SPI_DMA_Wait(void)
-{
-	while(SPI_Wait)
-		__WFI();
-  
-  // wait until SPI finishes
-  while(SPI1->SR & SPI_SR_BSY)
-    /* wait */ ;
-}
-
-void SPI_Block_Fill(uint8_t Fill, uint16_t size)
-{
-  DMA1_Channel3->CCR &= ~DMA_CCR_EN;
-  DMA1_Channel3->CMAR = (uint32_t) &Fill;
-  DMA1_Channel3->CNDTR = size;
-  SPI_Wait = 1;
-	
-  // 8-bit memory/peripheral, write, enable
-  DMA1_Channel3->CCR = SPI_DMA_PRIORITY|DMA_CCR_DIR|DMA_CCR_TCIE|DMA_CCR_EN;
-  SPI_DMA_Wait();  
-}
-
-void SPI_Block_Write(const uint8_t *ptr, uint16_t size)
-{
-  DMA1_Channel3->CCR &= ~DMA_CCR_EN;
-  DMA1_Channel3->CMAR = (uint32_t) ptr;
-  DMA1_Channel3->CNDTR = size;
-  SPI_Wait = 1;
-	
-  // 8-bit memory/peripheral, memory increment, write, enable, complete IRQ
-  DMA1_Channel3->CCR = SPI_DMA_PRIORITY|DMA_CCR_MINC|DMA_CCR_DIR|DMA_CCR_TCIE|DMA_CCR_EN;
-  SPI_DMA_Wait();  
-}
-
-void SPI_ByteWrite(uint8_t byte)
-{
-  SPI_Block_Write(&byte,1);
-}
-
 void LCD_Init(void)
 { 
-	RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
-	
-	// SPI Master, Software NSS, Slave select, MSB first, 
-	// SCK=48MHz/16=3MHz, CPOL=0, CHPA=0
-	SPI1->CR1 = SPI_CR1_MSTR|SPI_CR1_SSM|SPI_CR1_SSI|SPI_BR;
-	
-	// Data size = 8-bit, Motorola SPI mode, No NSS
-	SPI1->CR2 = SPI_CR2_DS_2|SPI_CR2_DS_1|SPI_CR2_DS_0|SPI_CR2_TXDMAEN;	
-
-	// Enable SPI
-	SPI1->CR1|= SPI_CR1_SPE;
-  
-	NVIC_SetPriority(DMA1_Ch2_3_DMA2_Ch1_2_IRQn,LCD_DMA_IRQ_PRIORITY);
-  NVIC_EnableIRQ(DMA1_Ch2_3_DMA2_Ch1_2_IRQn);
-	
-	// DMA Ch3 - SPI
-	DMA1_Channel3->CPAR = (uint32_t) &SPI1->DR;
-	
   LCD_CmdMode();
   SPI_Block_Write(LCD_InitCmd,sizeof(LCD_InitCmd));
 

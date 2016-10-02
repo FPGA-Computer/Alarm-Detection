@@ -1,5 +1,13 @@
-"Alarm detection for hearing impaired"
+Alarm detection for hearing impaired
 
+"DMA mem func & reorg"
+- use DMA for memset() and memmove()
+- reorganize DMA, SPI calls from Nokia5110 into hardware.c
+---------------------------------
+"Visualization"
+- added a simple graphic library
+- added battery status and volume envelope
+---------------------------------
 "Lost in Space" pre-pre release
 The PCB I have ordered has been lost in the mail.  This
 is the 2nd one in a row and I don't know if/when they

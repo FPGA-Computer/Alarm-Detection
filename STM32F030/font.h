@@ -32,14 +32,17 @@ extern const uint8_t Font_3x5[];
 #define Font_5x8_CH_LOW					32U
 #define Font_5x8_CH_HIGH				127U
 
-#define Font_3x5_CH_LOW					'.'
-#define Font_3x5_CH_HIGH				'9'
-#define Font_3x5_WIDTH					3
-#define Font_3x5_HEIGHT					5
-
 enum Font_3x5_Sym
-{ Font_3x5_V = '.'+1 };
-
+{ 
+	Font_3x5_V = '.'+1,
+	//----
+	Font_3x5_CH_LOW =	'.',
+	Font_3x5_CH_HIGH = '9',
+	//----
+	Font_3x5_WIDTH = 3,
+	Font_3x5_HEIGHT = 5
+};
+	
 #define FP_2D           100U
 #define FP_MULT         1000U
 #define FP_DIGIT        (FP_MULT/10)

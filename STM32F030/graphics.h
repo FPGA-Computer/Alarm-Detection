@@ -27,19 +27,20 @@
 #include "main.h"
 #include "audio.h"
 
-enum GVBars_Format
+enum Gfx_VBars_Format
 {
 	Bar_PeakOnly = 0x00, Bar_Full = 0x01,
 	Bar_Narrow = 0x00, Bar_Thick = 0x02, Bar_Dash = 0x03,
 	Bar_CursorStay = 0x04,
 	
+	// ----
 	Bar_Narrow_YScale = 1, Bar_Thick_YScale = 2,
-	
+	// ----
 	BM_Bar_Narrow = 0x01, BM_Bar_Narrow_Full = 0xff,
 	BM_Bar_Thick = 0x03, BM_Bar_Thick_Full = 0xaa
 };
 
-enum GPut_Format
+enum Gfx_Put_Format
 {
 	LeftJustify = 0x01, RightJustify = 0x00, LeadingZero = 0x02
 };

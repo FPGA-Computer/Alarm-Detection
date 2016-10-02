@@ -65,7 +65,6 @@ typedef struct
 	};
 	uint8_t fft_mag[SPECTRUM_BIN];
 	uint8_t volume[VOLUME_WIDTH];
-	uint8_t volume_index;
 } PlotData_t;
 
 extern Audio_t Audio_Data;

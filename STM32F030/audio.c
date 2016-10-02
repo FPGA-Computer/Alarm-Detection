@@ -112,8 +112,8 @@ int8_t Lookup(const uint32_t Value, const uint32_t *Table, uint16_t Last)
 void Audio_Init(void)
 {
 	Peak_Decay = dB_Table[dB_TBL_ENTERIES-2]/PEAK_DECAY_RATE;
-	memset(&Audio_Data,0,sizeof(Audio_Data));
-	memset(&Plot_Data,0,sizeof(Plot_Data));
+	DMA_memset(&Audio_Data,0,sizeof(Audio_Data));
+	DMA_memset(&Plot_Data,0,sizeof(Plot_Data));
 }
 
 // This sums the raw ADC samples in the buffer
@@ -123,6 +123,9 @@ void Audio_Processing(void)
 	int32_t Sum=0, VolumeSum =0;
 	
 	GPIOA->BSRR = PIN_SET(CTRL0);
+	
+	// Give DMA a bit of head start
+	DMA_memmove(Plot_Data.volume,Plot_Data.volume+1,sizeof(Plot_Data.volume)-1);
 	
 	if(Audio_Data.Conv_HalfDone)
 		Start = Cur = &Audio_Data.AudioBuffer[0];
@@ -158,9 +161,8 @@ void Audio_Processing(void)
 	else
 		Audio_Data.Peak_Volume = 0;
 	
-	Plot_Data.volume_index = (Plot_Data.volume_index+1)&(VOLUME_WIDTH-1);
-	Plot_Data.volume[Plot_Data.volume_index] = Lookup(VolumeSum,dB_Table,sizeof(dB_Table)/sizeof(uint32_t)-2);
-
+	Plot_Data.volume[sizeof(Plot_Data.volume)-1] = Lookup(VolumeSum,dB_Table,sizeof(dB_Table)/sizeof(uint32_t)-2);
+	
 		// Battery voltage
 	Audio_Data.Avg_Batt += (Audio_Data.Batt - Audio_Data.Avg_Batt)/ADC_BATT_AVERAGES;
 	GPIOA->BSRR = PIN_CLR(CTRL0);
@@ -188,6 +190,7 @@ void Spectrum(void)
 	Cur += start;
 	
 	memset(&Plot_Data.fft_data,0,sizeof(Plot_Data.fft_data));
+	//DMA_memset((uint8_t *)&Plot_Data.fft_data,0,sizeof(Plot_Data.fft_data));
 	
 	// subtract offset and hanning window	
 	for(i=0;i<ADC_BLOCK_SIZE;i++)
@@ -257,7 +260,7 @@ void Plot_All(void)
 		GPIOB->BSRR = PIN_CLR(BACKLIGHT);
 
 		Spectrum();
-		memset(Plot_Data.LCD_Buffer,0,sizeof(Plot_Data.LCD_Buffer));
+		DMA_memset(Plot_Data.LCD_Buffer,0,sizeof(Plot_Data.LCD_Buffer));
 	
 		Gfx_Moveto(VU_COL,VU_ROW);
 		Gfx_VBar(Volume,VU_ROWS,VU_WIDTH,Bar_Full|Bar_Dash);		
@@ -292,22 +295,22 @@ void Plot_All(void)
 		else
 			GPIOB->BSRR = PIN_SET(BACKLIGHT);
 		
-		memset(Plot_Data.LCD_Buffer,0,
-					 Audio_Data.Spectrum_Blank?LCD_MAX_X*VOLUME_ROWS:
-					 sizeof(Plot_Data.LCD_Buffer));
+		DMA_memset(Plot_Data.LCD_Buffer,0,
+							 Audio_Data.Spectrum_Blank?LCD_MAX_X*VOLUME_ROWS:
+							 sizeof(Plot_Data.LCD_Buffer));
 	}
 
 	Plot_Batt((uint32_t)((Audio_Data.Avg_Batt*ADC_BATT_SCALE_MULT)/ADC_BATT_SCALE_DIV));
 	
 	Gfx_Moveto(VOLUME_COL,VOLUME_ROW);
-	y0 = Plot_Data.volume[(Plot_Data.volume_index+1)&(VOLUME_WIDTH-1)];
+	y0 = Plot_Data.volume[0];
 	
 	if(y0 > VOLUME_ROWS*LCD_PIX_PER_ROW-1)
 	  y0 = VOLUME_ROWS*LCD_PIX_PER_ROW-1;
 	
 	for(i=1;i<VOLUME_WIDTH;i++)
 	{ 
-		y1 = Plot_Data.volume[(i+Plot_Data.volume_index)&(VOLUME_WIDTH-1)];
+		y1 = Plot_Data.volume[i];
 		
 		if(y1 > VOLUME_ROWS*LCD_PIX_PER_ROW-1)
 			y1 = VOLUME_ROWS*LCD_PIX_PER_ROW-1;		

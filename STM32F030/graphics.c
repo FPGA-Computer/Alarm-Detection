@@ -135,28 +135,28 @@ void Gfx_Set(uint8_t Y)
 
 void Gfx_Plot(uint8_t Y0, uint8_t Y1)
 {
-  int8_t dy, y, y_mid;
+  int8_t dy, y_mid;
 	uint8_t *x1;
-	
-	dy = (int8_t)Y1 - (int8_t)Y0;
-	y_mid = (Y0 + Y1)/2;
-	y = Y0;
-	x1 = GBuf+1;
-	
-	if(dy > 0)
+		
+	if(Y1 > Y0)
 		dy = 1;
-	else if (dy < 0)
+	else if (Y1 == Y0)
+	  dy = 0;
+  else
 	  dy = -1;
+	
+	y_mid = (Y0 + Y1)/2;
+	x1 = GBuf+1;
 	
   do
 	{		
-		Gfx_Set(y);
-		y += dy;
+		Gfx_Set(Y0);
+		Y0 += dy;
 		
-		if(y==y_mid)
-			GBuf=x1;
+		if(Y0 == y_mid)
+			GBuf = x1;
 
-	} while(y!=Y1);
+	} while(Y0 != Y1);
 	
 	GBuf=x1;
 }
