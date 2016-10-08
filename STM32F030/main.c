@@ -24,7 +24,6 @@
 #include "hardware.h"
 #include "font.h"
 
-uint32_t Prev_Time=0xffff;
 uint8_t Ticks;
 
 int main(void)

@@ -172,9 +172,9 @@ void Spectrum(void)
 {
 	uint16_t i, start, DC_Offset;
 	int16_t *Cur;
-	uint8_t *Mag;
+	uint8_t *Mag, Mag_dB, Peak_Value, Bin;
 	int16comp_t *Sp;
-	uint32_t Magnitude;
+	uint32_t Magnitude, Noise;
 	
 	GPIOA->BSRR = PIN_SET(CTRL0);
 	
@@ -203,15 +203,30 @@ void Spectrum(void)
 	int16fft_exec(Plot_Data.fft_data);
 	
 	Mag = Plot_Data.fft_mag;
+
+	Noise = 0;
+	Peak_Value = 0;
+	Bin = 0;
 	
 	for(i=0;i< N_FFT/2;i++)
 	{
 		Sp = &Plot_Data.fft_data[Tbl_brev[i]];
 		Magnitude = (uint32_t)(Sp->r*Sp->r) + (uint32_t)(Sp->i*Sp->i);
-		
-		*Mag++ = Lookup(Magnitude,fft_dBScale,sizeof(fft_dBScale)/sizeof(uint32_t)-2);
-	}
 
+		if(i>= SPECTRUM_START)
+			Noise += Magnitude;
+		
+		*Mag++ = Mag_dB = Lookup(Magnitude,fft_dBScale,sizeof(fft_dBScale)/sizeof(uint32_t)-2);
+		
+		if((Mag_dB > Peak_Value)&&(i>=FREQ_START))
+		{
+			Peak_Value = Mag_dB;
+			Bin = i;
+		}
+	}
+	
+	Plot_Data.peak = Bin;
+  Plot_Data.noise = Lookup(Noise/(uint32_t) SPECTRUM_BIN,fft_dBScale,sizeof(fft_dBScale)/sizeof(uint32_t)-2);
 	GPIOA->BSRR = PIN_CLR(CTRL0);
 }
 
@@ -268,12 +283,6 @@ void Plot_All(void)
 		Gfx_Moveto(VU_COL,VU_ROW);
 		Gfx_VBar(Peak,VU_ROWS,VU_WIDTH,Bar_PeakOnly|Bar_Thick);
 		
-		for(i=0;i<sizeof(SpectrumGrid)/sizeof(uint8_t);i++)
-		{
-			x = SPECTRUM_COL+SpectrumGrid[i];
-			Plot_Data.LCD_Buffer[SPECTRUM_GRID_ROW][x]|=(i&0x01)?SPECTRUM_GRID_LONG:SPECTRUM_GRID_SHORT;
-		}
-		
 		Gfx_Moveto(SPECTRUM_COL,SPECTRUM_ROW);
 		
 		// consolidate 2 bins
@@ -285,8 +294,25 @@ void Plot_All(void)
 				Peak = Plot_Data.fft_mag[SPECTRUM_START+i*SPECTRUM_BIN_INC+1];
 			
 			Gfx_VBar(Peak,SPECTRUM_ROWS,1,Bar_Full|Bar_Narrow);
-		}	
-		Audio_Data.Spectrum_Blank = 0;		
+		}
+		
+		// Plot RMS noise floor
+		Gfx_Moveto(RMS_NOISE_COL,SPECTRUM_ROW);	
+		Gfx_VBar(Plot_Data.noise,SPECTRUM_ROWS,RMS_NOISE_DASH_WIDTH,Bar_Narrow);
+		Gfx_Moveto(RMS_NOISE_COL+RMS_NOISE_DASH_WIDTH+RMS_NOISE_SPACE_WIDTH,SPECTRUM_ROW);	
+		Gfx_VBar(Plot_Data.noise,SPECTRUM_ROWS,RMS_NOISE_DASH_WIDTH,Bar_Narrow);
+		Gfx_Moveto(RMS_NOISE_COL+RMS_NOISE_DASH_WIDTH+RMS_NOISE_SPACE_WIDTH+
+							 RMS_NOISE_DASH_WIDTH+RMS_NOISE_SPACE_WIDTH,SPECTRUM_ROW);	
+		Gfx_VBar(Plot_Data.noise,SPECTRUM_ROWS,RMS_NOISE_DASH_WIDTH,Bar_Narrow);
+		
+		Audio_Data.Spectrum_Blank = 0;
+		
+		if(Plot_Data.fft_mag[Plot_Data.peak]> Plot_Data.noise + FREQ_THRESHOLD)
+		{ 
+			LCD_Cord_XY(STATUS_FREQ_COL,STATUS_FREQ_ROW);
+			Print_uint(Plot_Data.peak*SPECTRUM_BIN_FREQ,1000,LeftJustify);
+			LCD_Puts("Hz");
+		}
 	}
 	else
 	{
@@ -302,6 +328,12 @@ void Plot_All(void)
 
 	Plot_Batt((uint32_t)((Audio_Data.Avg_Batt*ADC_BATT_SCALE_MULT)/ADC_BATT_SCALE_DIV));
 	
+	for(i=0;i<sizeof(SpectrumGrid)/sizeof(uint8_t);i++)
+	{
+		x = SPECTRUM_COL+SpectrumGrid[i];
+		Plot_Data.LCD_Buffer[SPECTRUM_GRID_ROW][x]|=(i&0x01)?SPECTRUM_GRID_LONG:SPECTRUM_GRID_SHORT;
+	}
+			
 	Gfx_Moveto(VOLUME_COL,VOLUME_ROW);
 	y0 = Plot_Data.volume[0];
 	
@@ -318,7 +350,7 @@ void Plot_All(void)
 		Gfx_Plot(y0,y1);
 		y0 = y1;
 	}
-	
+
 	LCD_Cord_XY(SPECTRUM_COL,PLOTDATA_ROW);
 	LCD_DataMode();
 	SPI_Block_Write((const uint8_t *)Plot_Data.LCD_Buffer,

@@ -70,7 +70,7 @@
 #include "nokia5110.h"
 #include "adc.h"
 #include "audio.h"
-#include "fifo.h"
+//#include "fifo.h"
 
 void Hardware_Init(void);
 

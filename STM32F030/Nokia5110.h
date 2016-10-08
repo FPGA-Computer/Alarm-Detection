@@ -71,5 +71,6 @@ void LCD_HalfWidthCh(uint8_t Ch);
 // control/special characters
 
 #define Ch_NewLine					'\n'
+void Print_uint(uint16_t Value, uint16_t Div, uint8_t Format);
 
 #endif /* NOKIA5110_H_ */

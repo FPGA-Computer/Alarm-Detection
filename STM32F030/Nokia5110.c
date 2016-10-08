@@ -21,6 +21,7 @@
  
 #include "hardware.h"
 #include "font.h"
+#include "graphics.h"
 
 uint8_t TextAttr=0, CurCol, CurRow;
 
@@ -118,3 +119,20 @@ void LCD_Puts(const char *str)
   while (*str)
     LCD_PutCh(*str++);
  }
+
+void Print_uint(uint16_t Value, uint16_t Div, uint8_t Format)
+{
+	do
+  { 
+    if((Format & LeadingZero)||(Value >= Div)||(Div == 1))
+    { 
+			Format = LeadingZero;
+      LCD_PutCh('0'+Value/Div);
+      Value %= Div;
+     }
+    else if(Format & LeftJustify)
+			LCD_PutCh(' ');
+
+    Div /= 10;
+  } while(Div);
+}

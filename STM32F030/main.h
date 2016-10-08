@@ -83,6 +83,10 @@ extern uint8_t Ticks;
 #define SPECTRUM_BIN_INC			(SPECTRUM_BIN/SPECTRUM_WIDTH)
 #define SPECTRUM_BIN_FREQ			(ADC_SAMPLE_RATE/N_FFT)
 
+#define RMS_NOISE_COL					(SPECTRUM_WIDTH+3)
+#define RMS_NOISE_DASH_WIDTH	2
+#define RMS_NOISE_SPACE_WIDTH	1
+
 #define VU_ROW								4
 #define VU_COL								(LCD_MAX_X-(VU_WIDTH+1))
 #define VU_WIDTH							5
@@ -100,6 +104,12 @@ extern uint8_t Ticks;
 #define BATT_BM								0x40
 #define BATT_LOW_END					2300
 #define BATT_BAR_RES					30
+
+#define STATUS_FREQ_COL				0
+#define STATUS_FREQ_ROW				0
+#define FREQ_START						3
+
+#define FREQ_THRESHOLD				5
 
 #define BACKLIGHT_TIMEOUT			40
 #endif
